@@ -1,7 +1,7 @@
 #include <Windows.h>
 #include <gdiplus.h>
 
-#pragma comment(lib, "Gdiplus.lip")
+#pragma comment(lib, "Gdiplus.lib")
 
 using namespace Gdiplus;
 
@@ -60,13 +60,47 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
-
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
 	}
 
 	GdiplusShutdown(token);
+
+	return static_cast<int>(msg.wParam);
+}
+
+void OnPaint(HWND hwnd)
+{
+	PAINTSTRUCT ps;
+	HDC hdc = BeginPaint(hwnd, &ps);
+
+	Graphics graphics(hdc);
+
+	///
+
+	EndPaint(hwnd, &ps);
 }
 
 LRESULT WindowProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 {
-	return LRESULT();
+	switch (message)
+	{
+	case WM_PAINT:
+		OnPaint(hwnd);
+		break;
+
+	case WM_CLOSE:
+		DestroyWindow(hwnd);
+		break;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+
+	default:
+		return DefWindowProc(hwnd, message, wparam, lparam);
+	}
+
+	return 0;
+
 }
