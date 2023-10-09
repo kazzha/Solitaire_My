@@ -114,7 +114,7 @@ namespace solitaire
 			}
 			else
 			{
-				if (mpPrevious == pCard)
+				if (mpPrevious != pCard)
 				{
 					if (pCard->GetType() == mpPrevious->GetType())
 					{
