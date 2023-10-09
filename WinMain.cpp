@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include <gdiplus.h>
+#include "GameLogic.h"
 
 #pragma comment(lib, "Gdiplus.lib")
 
@@ -9,11 +10,15 @@ const wchar_t gClassName[] = L"SolitaireWindowClass";
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
 
+// Test
+solitaire::GameLogic gLogic;
+
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
 	GdiplusStartupInput gsi;
 	ULONG_PTR token;
 	GdiplusStartup(&token, &gsi, nullptr);
+
 
 	WNDCLASSEX wc;
 	ZeroMemory(&wc, sizeof(WNDCLASSEX));
@@ -32,12 +37,12 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	}
 
 	RECT wr = { 0,0,1024,768 };
-	AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
+	AdjustWindowRect(&wr, WS_OVERLAPPED | WS_SYSMENU, FALSE);
 	HWND hwnd = CreateWindowEx(
 		0,
 		gClassName,
 		L"Solitaire Game",
-		WS_OVERLAPPEDWINDOW,
+		WS_OVERLAPPED | WS_SYSMENU,
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		wr.right - wr.left,
 		wr.bottom - wr.top,
@@ -53,6 +58,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		return 0;
 
 	}
+	gLogic.Init(hwnd); // 시점 직접 제어 가능
 
 	ShowWindow(hwnd, nShowCmd);
 	UpdateWindow(hwnd);
@@ -64,8 +70,9 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		DispatchMessage(&msg);
 	}
 
-	GdiplusShutdown(token);
+	gLogic.Release();
 
+	GdiplusShutdown(token);
 	return static_cast<int>(msg.wParam);
 }
 
@@ -76,7 +83,7 @@ void OnPaint(HWND hwnd)
 
 	Graphics graphics(hdc);
 
-	///
+	gLogic.Draw(graphics);
 
 	EndPaint(hwnd, &ps);
 }
@@ -85,6 +92,10 @@ LRESULT WindowProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
 {
 	switch (message)
 	{
+	case WM_LBUTTONDOWN:
+		gLogic.OnClick(LOWORD(lparam), HIWORD(lparam));
+		break;
+
 	case WM_PAINT:
 		OnPaint(hwnd);
 		break;
